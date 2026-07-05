@@ -1,9 +1,12 @@
 # smartvedit-skills
 
-The agent skill for [smartvedit](https://smartvedit.com) — teaches an AI
-agent (Claude Code, Codex, etc.) to drive the `smartvedit` CLI: login,
-submit whole-video fixers (trim pauses, captions, level, remaster,
-highlights), watch jobs, and chain steps into a pipeline.
+The agent skill for [smartvedit](https://smartvedit.com) — turns natural-
+language requests ("trim pauses on the latest video", "find quotes in job
+X", "run a pipeline of trim_pauses then captions on this") into the right
+`smartvedit` CLI invocation: login, submit whole-video fixers (trim
+pauses, captions, level, remaster, highlights), watch/describe/delete
+jobs, and chain steps into a pipeline. Confirms the literal command
+before running it — see `skills/smartvedit/workflow.md`.
 
 ## Install
 
@@ -31,12 +34,28 @@ npx skills add deemwar-products/smartvedit-skills
 smartvedit-skills/
 └── skills/
     └── smartvedit/
-        └── SKILL.md
+        ├── SKILL.md           # frontmatter + triggers
+        ├── workflow.md        # step-by-step procedure
+        ├── references/
+        │   └── verbs.md       # full natural-language → CLI translation table
+        ├── scripts/
+        │   ├── check-prereqs.sh
+        │   └── exec.sh
+        └── tests/
+            └── test_workflow.sh
 ```
 
 Tracked source of truth for the copy baked into `smartvedit-cli` at build
 time (submoduled into `apps/cli/` of the
-[video-ai](https://github.com/deemwar-products/video-ai) monorepo).
+[video-ai](https://github.com/deemwar-products/video-ai) monorepo, and
+symlinked at `.claude/skills/smartvedit` there for local auto-discovery
+while working on that repo).
+
+Run the skill's own tests:
+
+```sh
+bash skills/smartvedit/tests/test_workflow.sh
+```
 
 ---
 

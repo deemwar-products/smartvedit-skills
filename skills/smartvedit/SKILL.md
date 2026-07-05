@@ -1,86 +1,53 @@
 ---
 name: smartvedit
-description: Auto-edit a video from the command line — trim pauses, burn captions, normalize loudness, upscale, or pull highlight reels/quotes — by driving the `smartvedit` CLI. Use when the user wants to "clean up this video", "cut the dead air", "add captions", "fix the audio levels", "upscale this clip", "find the highlights/best quotes", or wants to chain several of those in one pass. Handles login, job submission, waiting for results, and chaining steps into a pipeline.
+description: >
+  Drive the smartvedit Node.js CLI for the video-ai backend from natural
+  language. Translates requests like "smartvedit X", "run smartvedit X",
+  "trim pauses on this video", "trim pauses on the latest job", "trim
+  pauses on job X", "auto-caption this", "burn captions on X", "generate
+  captions", "normalize loudness", "level the audio", "fix levels on X",
+  "remaster the latest", "remaster HD on X", "upscale this video", "find
+  reels", "pick the best moments", "make a reel from X", "find quotes",
+  "pull quotes", "find quotable moments", "run a pipeline of A then B
+  then C on this video", "list my smartvedit jobs", "show my jobs",
+  "what jobs do I have", "describe job X", "show me job X", "watch job
+  X", "wait for job X", "cancel job X", "delete job X", and "log into
+  smartvedit" into the right `smartvedit` invocation (verb + kind +
+  flags). Confirms the literal command before running. Requires the
+  `smartvedit` CLI on PATH (`npm i -g smartvedit-cli`) or falls back to
+  `npx smartvedit-cli`.
 ---
 
-# smartvedit — auto-edit videos via the smartvedit CLI
+# smartvedit
 
-`smartvedit` is deemwar's video auto-editing product. This skill drives its CLI
-(`smartvedit-cli` on npm, bin `smartvedit`) so you (the agent) can submit jobs,
-watch them, and chain fixers into a pipeline on the user's behalf.
+Use this skill when the user wants to drive the video-ai backend from
+the shell — submit fixers (trim pauses, captions, level, remaster,
+highlights), chain them in a pipeline, inspect / watch / cancel jobs,
+or log in.
 
-## Prerequisite
+The skill turns natural-language requests into the right `smartvedit`
+CLI invocation. It does not call the HTTP API directly — the Node CLI
+(npm package `smartvedit-cli`, bin `smartvedit`) is the single source
+of truth for the verb / kind / flag grammar.
 
-The `smartvedit` CLI must be on PATH:
+## Core rules
 
-```sh
-npm install -g smartvedit-cli
-smartvedit --version
-```
+- The skill REQUIRES the `smartvedit` CLI from npm:
+  `npm i -g smartvedit-cli`. If the binary isn't on PATH, fall back to
+  `npx smartvedit-cli` (no install).
+- Auth lives in `${XDG_CONFIG_HOME:-~/.config}/smartvedit/token`. If
+  `whoami` errors with "not logged in", run `smartvedit login`
+  (interactive Firebase browser flow), or `smartvedit login-password`
+  for the username/password fallback.
+- Default every `create` to `--wait` so the skill streams progress and
+  surfaces the final `output_url`. Pipelines wait between steps by
+  default; pass `--no-wait-final` only when the user explicitly asks
+  for fire-and-forget.
+- For ambiguous job references ("the latest", "this video", "my last
+  job"), use `--latest` (no status), or `--latest ok` when the user
+  said "finished" / "completed" / "done".
+- ALWAYS print the literal `smartvedit ...` invocation and confirm
+  before running. Do not guess silently.
 
-If it's missing, install it first — don't try to hit the HTTP API directly;
-the CLI owns auth, job-ref resolution (`latest`, `latest:ok`), and polling.
-
-## Login (once per machine)
-
-```sh
-smartvedit login             # Firebase Google sign-in, opens a browser
-smartvedit whoami            # confirms {id, username, email, credits_balance}
-```
-
-Cached token lives on disk after this — no need to log in again per command.
-If the user has no browser handy, `smartvedit login-password <user> <pass>`
-is the fallback.
-
-## The fixers
-
-Every whole-video action is a `create <action>` verb. All take `--source <ref>`
-(a job id, or the bare word `latest` / `latest:ok` for "whatever I just
-uploaded/finished"), and `--wait` to block until done and print the result
-instead of just a queued ack.
-
-| Command | What it does |
-|---|---|
-| `smartvedit create trim-pauses --source <ref> --min-pause <s> --wait` | Cuts dead air / long pauses. |
-| `smartvedit create captions --source <ref> --font-size <int> --position top\|bottom --wait` | Burns in captions. |
-| `smartvedit create level --source <ref> --target-i <db> --wait` | Normalizes loudness (EBU R128-style). |
-| `smartvedit create remaster --source <ref> --wait` | GPU upscale/remaster. |
-| `smartvedit create highlights --source <ref> --preset reel\|quotes --wait` | Pulls a highlight reel or best-quotes cut. |
-
-Without `--wait`, the command prints a queued job id and a copy-pasteable
-next step (`smartvedit watch job <id>`) — use that instead of polling by hand.
-
-## Chaining steps (pipeline)
-
-```sh
-smartvedit create pipeline --source <ref> --steps trim_pauses,level,captions --wait
-```
-
-Valid step names: `trim_pauses`, `captions`, `level`, `remaster`, `highlights`
-(alias for `highlights:reel`), `highlights:reel`, `highlights:quotes`. Each
-step's output becomes the next step's `--source`. If a step fails, the
-pipeline halts there — don't retry blindly, surface the error to the user.
-
-## Inspecting and cleaning up
-
-```sh
-smartvedit get jobs --status running          # or -o json for scripting
-smartvedit get job latest                     # last job, any status
-smartvedit describe job <ref>                 # full job + result JSON
-smartvedit watch job latest                    # follow a job to completion
-smartvedit delete job latest                   # cancel-then-delete
-```
-
-## Rules of engagement
-
-- Always resolve what the user means by "that video" / "the last one" to
-  `latest` (or `latest:ok` if they mean the last *successful* one) rather
-  than asking them to hunt for a job id.
-- Don't invent flags — if a fixer needs a parameter not listed above, run
-  `smartvedit create <action> --help` and read the real flag names before
-  guessing.
-- Report credits used and the `output_url` back to the user after a job
-  completes; don't just say "done".
-- This skill only covers the CLI-scriptable whole-video fixers. Actions that
-  need a person-picker or free-typed text (multi-person compose/focus, add-quote
-  text) go through the smartvedit.com web app, not this skill.
+Follow the procedure in `./workflow.md`. The natural-language → CLI
+translation table is in `./references/verbs.md`.
