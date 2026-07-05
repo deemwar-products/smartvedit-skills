@@ -89,8 +89,9 @@ natural-language category maps to one CLI shape:
 - `create trim-pauses --source <id|--latest> [--min-pause N] --wait`
 - `create captions --source <id|--latest> [--font-size N] [--position top|bottom] --wait`
 - `create level --source <id|--latest> [--target-lufs N] --wait`
-- `create remaster --source <id|--latest> --wait`
-- `create highlights --source <id|--latest> [--preset reel|quotes] --wait`
+- `create cut --source <id|--latest> [--start <time>] [--end <time>] --wait` — explicit in/out range, stream-copy (see `references/verbs.md` "Cut")
+- `create remaster --source <id|--latest> --wait` (see the caution note in "Catalog vocabulary" below)
+- `create highlights --source <id|--latest> [--preset reel|quotes] --wait` (same caution)
 - `create pipeline --source <id|--latest> --steps trim_pauses,captions,level,remaster,highlights[,...] [--no-wait-final]`
 - `delete job <id|--latest>`
 
@@ -185,11 +186,25 @@ catalog entry in `specs/09-auto-editing.md` and a wizard tile in
 - **trim_pauses** — cut dead air & filler words
 - **captions** — transcribe + burn subtitles
 - **level** — loudness normalise to -14 LUFS
+- **cut** — trim to an explicit in/out range (stream-copy, near-instant)
 - **remaster** — upscale + face restore (GPU)
 - **highlights** — pick & assemble the best moments (`--preset reel`
   or `--preset quotes`)
 - **pipeline** — chain any of the above in order
 
+**Caution — remaster/highlights (2026-07-05):** these two are GPU-lane
+actions delegated to a serverless RunPod endpoint. As of this date that
+lane is unreliable in production (endpoint churn / dispatch failures),
+and the smartvedit web app hides both tiles for exactly this reason. The
+CLI verbs still exist and will accept a job, but expect a real chance of
+failure after credits are already charged. If the user asks for either,
+say so plainly before running it and let them decide — don't submit
+silently assuming it'll work.
+
 Coming-soon fixers from the same catalog (stabilize, denoise, gaze,
 mouth) are NOT in the CLI yet — if the user asks for one, say so and
-offer the closest live alternative.
+offer the closest live alternative. Several *live* web-app fixers also
+aren't in the CLI yet either: `vertical`, `looks`, `voice_swap`,
+`split_images`, `quotes`, `people` (person detection + composition) all
+work via the smartvedit.com web app today but have no CLI verb — say so
+if asked, don't invent flags for them.

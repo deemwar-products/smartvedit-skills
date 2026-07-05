@@ -6,8 +6,10 @@ description: >
   "trim pauses on this video", "trim pauses on the latest job", "trim
   pauses on job X", "auto-caption this", "burn captions on X", "generate
   captions", "normalize loudness", "level the audio", "fix levels on X",
-  "remaster the latest", "remaster HD on X", "upscale this video", "find
-  reels", "pick the best moments", "make a reel from X", "find quotes",
+  "cut this to 10 to 30 seconds", "trim from 0:10 to 0:30", "cut job X
+  from the start to a minute in", "remaster the latest", "remaster HD on
+  X", "upscale this video", "find reels", "pick the best moments", "make
+  a reel from X", "find quotes",
   "pull quotes", "find quotable moments", "run a pipeline of A then B
   then C on this video", "list my smartvedit jobs", "show my jobs",
   "what jobs do I have", "describe job X", "show me job X", "watch job
@@ -21,7 +23,7 @@ description: >
 # smartvedit
 
 Use this skill when the user wants to drive the video-ai backend from
-the shell — submit fixers (trim pauses, captions, level, remaster,
+the shell — submit fixers (trim pauses, captions, level, cut, remaster,
 highlights), chain them in a pipeline, inspect / watch / cancel jobs,
 or log in.
 

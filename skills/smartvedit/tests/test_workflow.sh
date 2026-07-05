@@ -47,7 +47,7 @@ test_skill_md_frontmatter() {
 test_workflow_md_lists_every_create_kind() {
   [[ -f "$WORKFLOW_MD" ]] || { fail "workflow.md missing at $WORKFLOW_MD"; return; }
   local kind
-  for kind in trim_pauses captions level remaster highlights pipeline; do
+  for kind in trim_pauses captions level cut remaster highlights pipeline; do
     assert_grep "$kind" "$WORKFLOW_MD" "workflow.md must mention catalog kind '$kind'"
   done
 }
@@ -65,6 +65,7 @@ test_verbs_md_covers_every_trigger_category() {
     "trim_pauses|create trim-pauses"
     "captions|create captions"
     "level|create level"
+    "cut|create cut"
     "remaster|create remaster"
     "highlights|create highlights"
     "pipeline|create pipeline"

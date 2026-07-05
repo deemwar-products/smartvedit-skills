@@ -63,6 +63,21 @@ surfaces the final `output_url`.
 | "trim pauses on job X" | `{invocation} create trim-pauses --source <id> --wait` |
 | "trim pauses with a 0.6 second threshold on the latest" | `{invocation} create trim-pauses --source --latest ok --min-pause 0.6 --wait` |
 
+## Cut (trim to a range)
+
+Distinct from "trim pauses" above — this cuts to an explicit in/out range
+via stream-copy (near-instant, no re-encode), not silence detection. Both
+`--start` and `--end` are optional and accept seconds ("12") or mm:ss
+("1:05"); omitting one leaves that bound open (start defaults to 0, end
+to the clip's end).
+
+| When user says… | Run |
+|---|---|
+| "cut this to 10 seconds to 30 seconds", "trim from 0:10 to 0:30" | `{invocation} create cut --source --latest ok --start 0:10 --end 0:30 --wait` |
+| "cut job X from the start to 1 minute" | `{invocation} create cut --source <id> --end 1:00 --wait` |
+| "cut everything before 5 seconds on the latest" | `{invocation} create cut --source --latest ok --start 5 --wait` |
+| "cut the latest video" (no range given) | Ask for an in/out point first — a cut with neither bound is a no-op full-clip copy. Don't submit until you have at least one. |
+
 ## Captions
 
 | When user says… | Run |
